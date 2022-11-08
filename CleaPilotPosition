@@ -1,0 +1,42 @@
+[HttpPost]
+        [Route("Pilot/DBClearPersonPosition")]
+        public IActionResult DBClearPersonPosition(
+            [FromQuery] int IdPersonSystem = -1)
+        {
+            #region get pilot tool
+            string ServerName = (string)HttpContext.Items["ServerName"];
+            string ServerPort = (string)HttpContext.Items["ServerPort"];
+            string BaseName = (string)HttpContext.Items["BaseName"];
+            PilotAdminTool pilotAdminTool = new PilotAdminTool(
+                "http://" + ServerName + ":" + ServerPort + "/" + BaseName,
+                Startup.config["user"].ToString(),
+                Startup.config["password"].ToString());
+            pilotAdminTool.Loggin(BaseName);
+            pilotAdminTool.adminApi.OpenDatabase(BaseName);
+            #endregion
+
+            var Token = (string)HttpContext.Items["Token"];
+            if (IdPersonSystem == -1)
+            {
+                Response.StatusCode = 400;
+                return Content("Id's can't be null or empty");
+            }
+
+            //get actual Id for PIlot if Extern system not Pilot
+            if ((int)HttpContext.Items["IdSys"] != 1)
+                IdPersonSystem = PostgreTool.GetIdPersonByIdSystem(IdPersonSystem, Token);
+
+            try
+            {
+                return Content(pilotAdminTool.ClearPersonsPosition(IdPersonSystem));
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = 402;
+                return Content(e.Message);
+            }
+            finally
+            {
+                pilotAdminTool.Dispose();
+            }
+        }
