@@ -28,7 +28,26 @@
 
             try
             {
-                return Content(pilotAdminTool.ClearPersonsPosition(IdPersonSystem));
+                    try
+                    {
+                        var changedPerson = GetDPersonById(IdPerson);
+                        if (changedPerson == null)  return "ERROR;Can't find by id";
+
+                        //TODO to delete
+                        Console.WriteLine($"Main position : {changedPerson.MainPosition()}");
+
+                        //adminApi.SetPeopleOnPosition(new DPersonOnPositionData()
+                        //  { Person = null, PositionId = changedPerson.MainPosition() });
+                        changedPerson.Positions.Remove(changedPerson.MainPosition());
+                        changedPerson.AllOrgUnits.Remove(changedPerson.MainPosition());
+                        adminApi.UpdatePerson(changedPerson);
+
+                        return GetPersonById(IdPerson);
+                    }
+                    catch (Exception e)
+                    {
+                        return "ERROR in pilot tool;" + e.Message;
+                    }
             }
             catch (Exception e)
             {
